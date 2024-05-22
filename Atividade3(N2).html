@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consulta de Endereço</title>
+</head>
+<body>
+  <h1>Consulta de Endereço por CEP</h1>
+  <label for="cepInput">CEP:</label>
+  <input type="text" id="cepInput">
+  <button id="consultButton">Consultar</button>
+  <div id="enderecoInfo"></div>
+
+  <script>
+    // Adiciona um ouvinte de evento ao botão "Consultar" que executa uma função ao ser clicado
+    document.getElementById('consultButton').addEventListener('click', function() {
+      // Obtém o valor do campo de entrada de CEP e remove espaços em branco nas extremidades
+      const cep = document.getElementById('cepInput').value.trim();
+      // Verifica se o CEP tem exatamente 8 dígitos e se é numérico
+      if (cep.length !== 8 || isNaN(cep)) {
+        alert('Por favor, insira um CEP válido com 8 dígitos numéricos.');
+        return;
+      }
+
+      // Faz uma requisição para a API ViaCEP usando o CEP fornecido
+      fetch(`https://viacep.com.br/ws/${cep}/json/`)
+        .then(response => {
+          // Verifica se a resposta da requisição é bem-sucedida
+          if (!response.ok) {
+            throw new Error('Não foi possível obter os dados do endereço.');
+          }
+          // Converte a resposta para JSON
+          return response.json();
+        })
+        .then(data => {
+          // Verifica se o estado (uf) do endereço retornado é São Paulo (SP)
+          if (data.uf !== 'SP') {
+            throw new Error('O CEP digitado não pertence ao estado de São Paulo.');
+          }
+          // Insere as informações do endereço na div 'enderecoInfo'
+          document.getElementById('enderecoInfo').innerHTML = `
+            <h2>Endereço Encontrado:</h2>
+            <p><strong>CEP:</strong> ${data.cep}</p>
+            <p><strong>Logradouro:</strong> ${data.logradouro}</p>
+            <p><strong>Bairro:</strong> ${data.bairro}</p>
+            <p><strong>Cidade:</strong> ${data.localidade}</p>
+            <p><strong>Estado:</strong> ${data.uf}</p>
+          `;
+        })
+        // Captura e exibe qualquer erro que ocorrer durante a requisição ou no processamento dos dados
+        .catch(error => {
+          document.getElementById('enderecoInfo').innerHTML = `<p>${error.message}</p>`;
+        });
+    });
+  </script>
+</body>
+</html>
